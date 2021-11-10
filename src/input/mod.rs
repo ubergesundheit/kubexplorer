@@ -32,6 +32,19 @@ pub fn parse_user_input() -> UserArgs {
                 .default_value("yaml")
                 .takes_value(true),
         )
+        // .arg(
+        //     Arg::with_name("KIND")
+        //         .help("configMap or secret")
+        //         .index(1)
+        //         .required(false)
+        //         .requires("NAME"),
+        // )
+        .arg(
+            Arg::with_name("NAME")
+                .help("the name of the secret or configmap")
+                // .index(2)
+                .index(1)
+        )
         .get_matches();
 
     UserArgs::new(
@@ -40,6 +53,8 @@ pub fn parse_user_input() -> UserArgs {
         matches.value_of("OUTPUT").map_or(Output::Yaml, |arg| {
             Output::from_str(arg).unwrap_or(Output::Yaml)
         }),
+        // matches.value_of("KIND").map_or(Kind::None, |arg| Kind::from_str(arg).unwrap_or(Kind::None)),
+        matches.value_of("NAME").map(|arg| arg.to_string()),
     )
 }
 
@@ -47,14 +62,18 @@ pub struct UserArgs {
     pub kubeconfig: Option<String>,
     pub namespace: Option<String>,
     pub output: Output,
+    // pub kind: Kind,
+    pub name: Option<String>,
 }
 
 impl UserArgs {
-    pub fn new(kubeconfig: Option<String>, namespace: Option<String>, output: Output) -> Self {
+    pub fn new(kubeconfig: Option<String>, namespace: Option<String>, output: Output, /* kind: Kind, */ name: Option<String>) -> Self {
         UserArgs {
             kubeconfig,
             namespace,
             output,
+            // kind,
+            name,
         }
     }
 }
@@ -62,6 +81,12 @@ impl UserArgs {
 pub enum Output {
     Yaml,
     Json,
+}
+
+pub enum Kind {
+    None,
+    ConfigMap,
+    Secret,
 }
 
 impl FromStr for Output {
@@ -72,6 +97,20 @@ impl FromStr for Output {
             "yaml" => Ok(Output::Yaml),
             "json" => Ok(Output::Json),
             _ => Err("Invalid output format".to_string()),
+        };
+    }
+}
+
+impl FromStr for Kind {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        return match s.trim().to_lowercase().as_str() {
+            "" => Ok(Kind::None),
+            "configmap" => Ok(Kind::ConfigMap),
+            "cm" => Ok(Kind::ConfigMap),
+            "secret" => Ok(Kind::Secret),
+            _ => Err("Invalid kind".to_string()),
         };
     }
 }

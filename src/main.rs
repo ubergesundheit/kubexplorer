@@ -41,21 +41,34 @@ async fn main() -> Result<()> {
         Some(ns) => ns,
     };
 
-    println!(
-        "Searching for unused ConfigMaps and Secrets in the '{}' namespace",
-        &namespace
-    );
+    let name = match user_args.name {
+        None => "".to_string(),
+        Some(n) => n,
+    };
+
+    if name == "" {
+        println!(
+            "Searching for unused ConfigMaps and Secrets in the '{}' namespace",
+            &namespace
+        );
+    }
 
     let client: Client = Client::try_from(config.clone()).unwrap();
 
-    let orphans = find_orphans(&client, &namespace).await?;
+    let orphans = find_orphans(&client, &namespace, &name).await?;
 
-    match user_args.output {
-        Output::Yaml => {
-            println!("{}", serde_yaml::to_string(&orphans).unwrap());
+    if name == "" {
+        match user_args.output {
+            Output::Yaml => {
+                println!("{}", serde_yaml::to_string(&orphans.secrets).unwrap());
+            }
+            Output::Json => {
+                println!("{}", serde_json::to_string_pretty(&orphans.secrets).unwrap());
+            }
         }
-        Output::Json => {
-            println!("{}", serde_json::to_string_pretty(&orphans).unwrap());
+    } else {
+        if orphans.secrets.len() > 0 {
+            println!("{}", name);
         }
     }
     Ok(())
