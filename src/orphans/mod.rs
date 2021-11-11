@@ -13,7 +13,7 @@ use rayon::prelude::*;
 use serde::Serialize;
 
 use crate::pod_spec::ResourceWithPodSpec;
-use crate::resources::{list_resource, list_resource_with_name};
+use crate::resources::{list_resource, list_resource_with_name, list_tls_secrets};
 use k8s_openapi::api::networking::v1::Ingress;
 
 const ROOT_CA_CERT: &str = "kube-root-ca.crt";
@@ -21,6 +21,7 @@ const ROOT_CA_CERT: &str = "kube-root-ca.crt";
 pub async fn find_orphans(client: &Client, namespace: &str, name: &str) -> Result<Orphans> {
 
     let configmaps_fut = list_resource_with_name::<ConfigMap>(client, namespace, name);
+    // let secrets_fut = list_tls_secrets::<Secret>(client, namespace);
     let secrets_fut = list_resource_with_name::<Secret>(client, namespace, name);
 
 

@@ -59,6 +59,11 @@ async fn main() -> Result<()> {
 
     if name == "" {
         match user_args.output {
+            Output::Plain => {
+                for x in orphans.secrets {
+                    println!("{}", x);
+                }
+            }
             Output::Yaml => {
                 println!("{}", serde_yaml::to_string(&orphans.secrets).unwrap());
             }
@@ -69,6 +74,7 @@ async fn main() -> Result<()> {
     } else {
         if orphans.secrets.len() > 0 {
             println!("{}", name);
+            std::process::exit(1);
         }
     }
     Ok(())

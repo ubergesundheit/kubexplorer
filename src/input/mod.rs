@@ -27,9 +27,9 @@ pub fn parse_user_input() -> UserArgs {
                 .short("o")
                 .long("output")
                 .value_name("OUTPUT")
-                .help("Output format. YAML by default.")
-                .possible_values(&["yaml", "json"])
-                .default_value("yaml")
+                .help("Output format. Plain by default.")
+                .possible_values(&["yaml", "json", "plain"])
+                .default_value("plain")
                 .takes_value(true),
         )
         // .arg(
@@ -50,8 +50,8 @@ pub fn parse_user_input() -> UserArgs {
     UserArgs::new(
         matches.value_of("KUBECONFIG").map(|arg| arg.to_string()),
         matches.value_of("NAMESPACE").map(|arg| arg.to_string()),
-        matches.value_of("OUTPUT").map_or(Output::Yaml, |arg| {
-            Output::from_str(arg).unwrap_or(Output::Yaml)
+        matches.value_of("OUTPUT").map_or(Output::Plain, |arg| {
+            Output::from_str(arg).unwrap_or(Output::Plain)
         }),
         // matches.value_of("KIND").map_or(Kind::None, |arg| Kind::from_str(arg).unwrap_or(Kind::None)),
         matches.value_of("NAME").map(|arg| arg.to_string()),
@@ -81,6 +81,7 @@ impl UserArgs {
 pub enum Output {
     Yaml,
     Json,
+    Plain,
 }
 
 pub enum Kind {
@@ -96,6 +97,7 @@ impl FromStr for Output {
         return match s.trim().to_lowercase().as_str() {
             "yaml" => Ok(Output::Yaml),
             "json" => Ok(Output::Json),
+            "plain" => Ok(Output::Plain),
             _ => Err("Invalid output format".to_string()),
         };
     }
